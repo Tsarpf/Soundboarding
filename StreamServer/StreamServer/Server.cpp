@@ -28,7 +28,7 @@ int Server::Run()
 			PIPE_UNLIMITED_INSTANCES, // max. instances  
 			BUFSIZE,                  // output buffer size 
 			BUFSIZE,                  // input buffer size 
-			0,                        // client time-out 
+			100,                        // client time-out 
 			NULL);                    // default security attribute 
 
 		if (hPipe == INVALID_HANDLE_VALUE)
@@ -168,11 +168,13 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 			break;
 		}
 		*/
-		//pchRequest = 0;
+		pchRequest = 0;
 
 		// Process the incoming message.
 		((Server*)that)->GetAnswerToRequest(pchRequest, &pchReply, &cbReplyBytes, count);
 		// Write the reply to the pipe. 
+		Sleep(100);
+		//FlushFileBuffers(hPipe);
 		fSuccess = WriteFile(
 			hPipe,        // handle to pipe 
 			pchReply,     // buffer to write from 
@@ -190,7 +192,7 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 		}
 
 
-		FlushFileBuffers(hPipe);
+		//FlushFileBuffers(hPipe);
 		Sleep(1000);
 		//delete pchReply;
 	}

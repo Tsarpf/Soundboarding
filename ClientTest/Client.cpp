@@ -72,6 +72,7 @@ int _tmain(int argc, TCHAR *argv[])
 	cbToWrite = (lstrlen(lpvMessage) + 1)*sizeof(TCHAR);
 	_tprintf(TEXT("Sending %d byte message: \"%s\"\n"), cbToWrite, lpvMessage);
 
+	/*
 	Sleep(1000);
 
 	fSuccess = WriteFile(
@@ -80,7 +81,7 @@ int _tmain(int argc, TCHAR *argv[])
 		cbToWrite,              // message length 
 		&cbWritten,             // bytes written 
 		NULL);                  // not overlapped 
-
+	*/
 	if (!fSuccess)
 	{
 		_tprintf(TEXT("WriteFile to pipe failed. GLE=%d\n"), GetLastError());
@@ -91,7 +92,11 @@ int _tmain(int argc, TCHAR *argv[])
 	while (true) {
 		do
 		{
-			// Read from the pipe. 
+			do {
+				PeekNamedPipe(hPipe, chBuf, BUFSIZE*sizeof(char), &cbRead, NULL, NULL);
+			} while (cbRead == 0);
+
+
 
 			fSuccess = ReadFile(
 				hPipe,    // pipe handle 
