@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1225654C-7C52-454B-B409-484AAF7000C6}</ProjectGuid>
+    <ProjectGuid>{B3AD80E9-981E-411A-BBF6-7EE2CBC705A2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>StreamServer</RootNamespace>
+    <RootNamespace>ClientTest</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -51,7 +51,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>D_SCL_SECURE_NO_WARNINGSWIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -78,11 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Server.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Server.h" />
+    <ClCompile Include="Client.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

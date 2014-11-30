@@ -1,4 +1,8 @@
 #include "Server.h"
+#include <string>
+#include <vector>
+
+#pragma warning(disable:4996)
 
 
 Server::Server() : fConnected(false), dwThreadId(0), hPipe(INVALID_HANDLE_VALUE), hThread(NULL), lpszPipename(TEXT("\\\\.\\pipe\\mynamedpipe"))
@@ -85,8 +89,10 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 // client connections.
 {
 	HANDLE hHeap = GetProcessHeap();
-	TCHAR* pchRequest = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
-	TCHAR* pchReply = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
+	//TCHAR* pchRequest = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
+	//TCHAR* pchReply = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
+	byte* pchReply = (byte*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(byte));
+	byte* pchRequest = (byte*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(byte)); 
 
 	DWORD cbBytesRead = 0, cbReplyBytes = 0, cbWritten = 0;
 	BOOL fSuccess = FALSE;
@@ -102,9 +108,10 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 		printf("   InstanceThread got an unexpected NULL value in lpvParam.\n");
 		printf("   InstanceThread exitting.\n");
 		if (pchReply != NULL) HeapFree(hHeap, 0, pchReply);
-		if (pchRequest != NULL) HeapFree(hHeap, 0, pchRequest);
+		//if (pchRequest != NULL) HeapFree(hHeap, 0, pchRequest);
 		return (DWORD)-1;
 	}
+
 
 	if (pchRequest == NULL)
 	{
@@ -129,20 +136,22 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 
 	// The thread's parameter is a handle to a pipe object instance. 
 
-	Server* server = (Server*)that;
-	hPipe = server->GetPipe();
+	//Server* server = (Server*)that;
+	hPipe = ((Server*)that)->GetPipe();
 	
 	//hPipe = (HANDLE)((Server*)that)->GetPipe();
 
+	int count = 0;
 	// Loop until done reading
 	while (1)
 	{
 		// Read client requests from the pipe. This simplistic code only allows messages
 		// up to BUFSIZE characters in length.
+		/*
 		fSuccess = ReadFile(
 			hPipe,        // handle to pipe 
 			pchRequest,    // buffer to receive data 
-			BUFSIZE*sizeof(TCHAR), // size of buffer 
+			BUFSIZE*sizeof(byte), // size of buffer 
 			&cbBytesRead, // number of bytes read 
 			NULL);        // not overlapped I/O 
 
@@ -158,10 +167,11 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 			}
 			break;
 		}
+		*/
+		//pchRequest = 0;
 
 		// Process the incoming message.
-		server->GetAnswerToRequest(pchRequest, pchReply, &cbReplyBytes);
-
+		((Server*)that)->GetAnswerToRequest(pchRequest, &pchReply, &cbReplyBytes, count);
 		// Write the reply to the pipe. 
 		fSuccess = WriteFile(
 			hPipe,        // handle to pipe 
@@ -170,11 +180,19 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 			&cbWritten,   // number of bytes written 
 			NULL);        // not overlapped I/O 
 
+		printf("%d written\n", count);
+		count++;
+
 		if (!fSuccess || cbReplyBytes != cbWritten)
 		{
 			_tprintf(TEXT("InstanceThread WriteFile failed, GLE=%d.\n"), GetLastError());
 			break;
 		}
+
+
+		FlushFileBuffers(hPipe);
+		Sleep(1000);
+		//delete pchReply;
 	}
 
 	// Flush the pipe to allow the client to read the pipe's contents 
@@ -192,22 +210,20 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 	return 1;
 }
 
-VOID Server::GetAnswerToRequest(LPTSTR pchRequest, LPTSTR pchReply,	LPDWORD pchBytes)
-	// This routine is a simple function to print the client request to the console
-	// and populate the reply buffer with a default data string. This is where you
-	// would put the actual client request processing code that runs in the context
-	// of an instance thread. Keep in mind the main thread will continue to wait for
-	// and receive other client connections while the instance thread is working.
+VOID Server::GetAnswerToRequest(byte pchRequest[], byte* pchReply[], LPDWORD pchBytes, int count)
 {
 	_tprintf(TEXT("Client Request String:\"%s\"\n"), pchRequest);
 
-	// Check the outgoing message to make sure it's not too long for the buffer.
-	if (FAILED(StringCchCopy(pchReply, BUFSIZE, TEXT("default answer from server"))))
-	{
-		*pchBytes = 0;
-		pchReply[0] = 0;
-		printf("StringCchCopy failed, no outgoing message.\n");
-		return;
-	}
-	*pchBytes = (lstrlen(pchReply) + 1)*sizeof(TCHAR);
+	std::string str = "Answer number ";
+	str += std::to_string(count);
+
+	char* c_str = new char[str.length()+1];
+	memcpy(c_str, str.c_str(), str.length() + 1);
+
+	*pchReply = (byte*)c_str;
+
+	//pchReply = param;
+
+	//*pchBytes = (lstrlen(pchReply) + 1)*sizeof(TCHAR);
+	*pchBytes = sizeof(char) * (str.length() + 1);
 }

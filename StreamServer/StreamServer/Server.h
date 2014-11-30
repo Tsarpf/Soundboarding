@@ -13,11 +13,12 @@ class Server
 	HANDLE hPipe = INVALID_HANDLE_VALUE, hThread = NULL;
 
 	static DWORD WINAPI InstanceThread(LPVOID);
-	VOID GetAnswerToRequest(LPTSTR pchRequest, LPTSTR pchReply, LPDWORD pchBytes);
+	VOID GetAnswerToRequest(byte pchRequest[], byte* pchReply[], LPDWORD pchBytes, int count);
 
 	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\mynamedpipe");
 
 	Server(const Server &);
+	Server& operator=(const Server &);
 public:
 	HANDLE GetPipe();
 	Server();
