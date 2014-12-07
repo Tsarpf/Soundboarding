@@ -2,10 +2,11 @@
 #include <stdio.h>
 #include <conio.h>
 #include <tchar.h>
+#include "WorkaroundClient.h"
 
 #define BUFSIZE 512
 
-int _tmain(int argc, TCHAR *argv[])
+int WorkaroundClient::Run()
 {
 	HANDLE hPipe;
 	LPTSTR lpvMessage = TEXT("Default message from client.");
@@ -14,8 +15,10 @@ int _tmain(int argc, TCHAR *argv[])
 	DWORD  cbRead, cbToWrite, cbWritten, dwMode;
 	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\mynamedpipe");
 
+	/*
 	if (argc > 1)
 		lpvMessage = argv[1];
+	*/
 
 	// Try to open a named pipe; wait for it, if necessary. 
 
@@ -53,8 +56,6 @@ int _tmain(int argc, TCHAR *argv[])
 		}
 	}
 
-	// The pipe connected; change to message-read mode. 
-
 	dwMode = PIPE_READMODE_BYTE;
 	fSuccess = SetNamedPipeHandleState(
 		hPipe,    // pipe handle 
@@ -76,11 +77,11 @@ int _tmain(int argc, TCHAR *argv[])
 	Sleep(1000);
 
 	fSuccess = WriteFile(
-		hPipe,                  // pipe handle 
-		lpvMessage,             // message 
-		cbToWrite,              // message length 
-		&cbWritten,             // bytes written 
-		NULL);                  // not overlapped 
+	hPipe,                  // pipe handle
+	lpvMessage,             // message
+	cbToWrite,              // message length
+	&cbWritten,             // bytes written
+	NULL);                  // not overlapped
 	*/
 	if (!fSuccess)
 	{
@@ -129,4 +130,14 @@ int _tmain(int argc, TCHAR *argv[])
 	CloseHandle(hPipe);
 
 	return 0;
+}
+
+
+WorkaroundClient::WorkaroundClient()
+{
+}
+
+
+WorkaroundClient::~WorkaroundClient()
+{
 }

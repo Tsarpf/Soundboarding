@@ -1,6 +1,7 @@
 #include "Server.h"
 #include <string>
 #include <vector>
+#include "WorkaroundClient.h"
 
 #pragma warning(disable:4996)
 
@@ -16,6 +17,9 @@ Server::~Server()
 
 int Server::Run()
 {
+	DWORD waThreadId = 0;
+	CreateThread(NULL, 0, &Server::WorkaroundThread, (LPVOID)this, 0, &waThreadId);
+
 	for (;;)
 	{
 		_tprintf(TEXT("\nPipe Server: Main thread awaiting client connection on %s\n"), lpszPipename);
@@ -40,6 +44,7 @@ int Server::Run()
 		// Wait for the client to connect; if it succeeds, 
 		// the function returns a nonzero value. If the function
 		// returns zero, GetLastError returns ERROR_PIPE_CONNECTED. 
+
 
 		fConnected = ConnectNamedPipe(hPipe, NULL) ?
 		TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
@@ -66,11 +71,21 @@ int Server::Run()
 			else CloseHandle(hThread);
 		}
 		else
+		{
 			// The client could not connect, so close the pipe. 
 			CloseHandle(hPipe);
+		}
 	}
 
 	return 0;
+}
+
+DWORD WINAPI Server::WorkaroundThread(LPVOID that)
+{
+	Sleep(1000);
+	WorkaroundClient* client = new WorkaroundClient();
+	client->Run();
+	return 1;
 }
 
 

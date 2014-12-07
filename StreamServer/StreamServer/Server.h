@@ -19,10 +19,12 @@ class Server
 
 	Server(const Server &);
 	Server& operator=(const Server &);
+
+	static DWORD WINAPI Server::WorkaroundThread(LPVOID that);
+
 public:
 	HANDLE GetPipe();
 	Server();
 	~Server();
 	int Run();
 };
-
