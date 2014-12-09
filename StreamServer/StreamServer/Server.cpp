@@ -106,8 +106,10 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 	HANDLE hHeap = GetProcessHeap();
 	//TCHAR* pchRequest = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
 	//TCHAR* pchReply = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
-	byte* pchReply = (byte*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(byte));
-	byte* pchRequest = (byte*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(byte)); 
+	//byte* pchReply = (byte*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(byte));
+	//byte* pchRequest = (byte*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(byte)); 
+	byte* pchReply = new byte[BUFSIZE];
+	byte* pchRequest = new byte[BUFSIZE];
 
 	DWORD cbBytesRead = 0, cbReplyBytes = 0, cbWritten = 0;
 	BOOL fSuccess = FALSE;
@@ -156,37 +158,50 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 	
 	//hPipe = (HANDLE)((Server*)that)->GetPipe();
 
+	char* inputBuf = new char[BUFSIZE];
+	for (int i = 0; i < BUFSIZE; i++)
+	{
+		inputBuf[i] = NULL;
+	}
 	int count = 0;
 	// Loop until done reading
 	while (1)
 	{
 		// Read client requests from the pipe. This simplistic code only allows messages
 		// up to BUFSIZE characters in length.
-		/*
-		fSuccess = ReadFile(
-			hPipe,        // handle to pipe 
-			pchRequest,    // buffer to receive data 
-			BUFSIZE*sizeof(byte), // size of buffer 
-			&cbBytesRead, // number of bytes read 
-			NULL);        // not overlapped I/O 
-
-		if (!fSuccess || cbBytesRead == 0)
+		PeekNamedPipe(hPipe, inputBuf, BUFSIZE*sizeof(char), &cbBytesRead, NULL, NULL);
+		if (cbBytesRead > 0)
 		{
-			if (GetLastError() == ERROR_BROKEN_PIPE)
+			fSuccess = ReadFile(
+				hPipe,        // handle to pipe 
+				inputBuf,    // buffer to receive data 
+				BUFSIZE*sizeof(byte), // size of buffer 
+				&cbBytesRead, // number of bytes read 
+				NULL);        // not overlapped I/O 
+
+			if (!fSuccess || cbBytesRead == 0)
 			{
-				_tprintf(TEXT("InstanceThread: client disconnected.\n"), GetLastError());
+				if (GetLastError() == ERROR_BROKEN_PIPE)
+				{
+					_tprintf(TEXT("InstanceThread: client disconnected.\n"), GetLastError());
+				}
+				else
+				{
+					_tprintf(TEXT("InstanceThread ReadFile failed, GLE=%d.\n"), GetLastError());
+				}
+				break;
 			}
-			else
-			{
-				_tprintf(TEXT("InstanceThread ReadFile failed, GLE=%d.\n"), GetLastError());
-			}
-			break;
+
+			printf("got message %s", inputBuf);
+			HeapFree(hHeap, 0, inputBuf);
 		}
-		*/
-		pchRequest = 0;
+		else
+		{
+
+		}
 
 		// Process the incoming message.
-		((Server*)that)->GetAnswerToRequest(pchRequest, &pchReply, &cbReplyBytes, count);
+		((Server*)that)->GetAnswerToRequest((byte*)inputBuf, &pchReply, &cbReplyBytes, count);
 		// Write the reply to the pipe. 
 		Sleep(100);
 		//FlushFileBuffers(hPipe);
@@ -220,8 +235,9 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 	DisconnectNamedPipe(hPipe);
 	CloseHandle(hPipe);
 
-	HeapFree(hHeap, 0, pchRequest);
-	HeapFree(hHeap, 0, pchReply);
+	delete[] inputBuf;
+	delete[] pchReply;
+	//HeapFree(hHeap, 0, pchReply);
 
 	printf("InstanceThread exitting.\n");
 	return 1;
@@ -229,7 +245,10 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 
 VOID Server::GetAnswerToRequest(byte pchRequest[], byte* pchReply[], LPDWORD pchBytes, int count)
 {
-	_tprintf(TEXT("Client Request String:\"%s\"\n"), pchRequest);
+	if (pchRequest[0] != NULL)
+	{
+		_tprintf(TEXT("Client Request String:\"%s\"\n"), pchRequest);
+	}
 
 	std::string str = "Answer number ";
 	str += std::to_string(count);
