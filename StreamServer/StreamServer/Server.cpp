@@ -1,8 +1,6 @@
 #include "Server.h"
 #include <string>
 #include <vector>
-#include "WorkaroundClient.h"
-
 #pragma warning(disable:4996)
 
 
@@ -17,8 +15,8 @@ Server::~Server()
 
 int Server::Run()
 {
-	DWORD waThreadId = 0;
-	CreateThread(NULL, 0, &Server::WorkaroundThread, (LPVOID)this, 0, &waThreadId);
+	//DWORD waThreadId = 0;
+	//CreateThread(NULL, 0, &Server::WorkaroundThread, (LPVOID)this, 0, &waThreadId);
 
 	for (;;)
 	{
@@ -75,19 +73,11 @@ int Server::Run()
 			// The client could not connect, so close the pipe. 
 			CloseHandle(hPipe);
 		}
+		Sleep(100);
 	}
 
 	return 0;
 }
-
-DWORD WINAPI Server::WorkaroundThread(LPVOID that)
-{
-	Sleep(1000);
-	WorkaroundClient* client = new WorkaroundClient();
-	client->Run();
-	return 1;
-}
-
 
 HANDLE Server::GetPipe()
 {
@@ -194,10 +184,6 @@ DWORD WINAPI Server::InstanceThread(LPVOID that)
 
 			printf("got message %s", inputBuf);
 			HeapFree(hHeap, 0, inputBuf);
-		}
-		else
-		{
-
 		}
 
 		// Process the incoming message.
