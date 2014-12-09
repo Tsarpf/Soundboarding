@@ -5,12 +5,28 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include "ThreadSafeQueue.h"
 
 #pragma warning(disable:4996)
 
 
-Server::Server() : newData(false), lpszPipename(TEXT("\\\\.\\pipe\\mynamedpipe"))
+Server::Server(std::string pipename, ThreadSafeQueue queue) : newData(false)
 {
+	int size = pipename.length() + 1;
+	const char* text = new char[size];
+	text = pipename.c_str();
+
+	wchar_t* wtext = new wchar_t[size * 2];
+
+	mbstowcs(wtext, text, size);//Plus null
+
+	lpszPipename = wtext;
+
+
+
+
+
+
 }
 
 

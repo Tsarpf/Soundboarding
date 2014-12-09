@@ -4,6 +4,9 @@
 #include <stdio.h> 
 #include <tchar.h>
 #include <strsafe.h>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #define BUFSIZE 512
 class Server
@@ -23,7 +26,7 @@ class Server
 	Server(const Server &);
 	Server& operator=(const Server &);
 public:
-	Server();
+	Server(std::string);
 	~Server();
 	int Run();
 };
