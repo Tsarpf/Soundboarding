@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include "ThreadSafeQueue.h"
 
 #define BUFSIZE 512
 class Server
@@ -27,6 +28,15 @@ class Server
 	Server& operator=(const Server &);
 public:
 	Server(std::string);
+	Server(std::string, ThreadSafeQueue<AudioChunk>);
 	~Server();
 	int Run();
+};
+
+struct AudioChunk
+{
+	int sampleRate;
+	int channels;
+	int frameCount;
+	void* frames;
 };

@@ -10,7 +10,7 @@
 #pragma warning(disable:4996)
 
 
-Server::Server(std::string pipename, ThreadSafeQueue queue) : newData(false)
+Server::Server(std::string pipename, ThreadSafeQueue<AudioChunk> queue) : newData(false)
 {
 	int size = pipename.length() + 1;
 	const char* text = new char[size];
@@ -88,7 +88,7 @@ void Server::StreamDataToClient(HANDLE hPipe)
 		//get data from queue
 
 		lock.unlock();
-		condVar.notify_one();
+		//condVar.notify_one(); //This doesn't belong here, right?
 
 		//form a packet out of data from queue
 
