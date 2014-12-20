@@ -5,6 +5,8 @@
 #include "Server.h"
 #include "include\getopt.h"
 #include <iostream>
+#include "ThreadSafeQueue.h"
+#include "SpotifyProvider.h"
 
 int main(int argc, char** argv)
 {
@@ -36,7 +38,15 @@ int main(int argc, char** argv)
 		std::cout << "username passsowrd list name missing or something";
 		exit(1);
 	}
-	Server server;
+
+	std::string pipename = "\\\\.\\pipe\\mynamedpipe";
+
+	ThreadSafeQueue<AudioChunk> queue;
+	
+	SpotifyProvider spotify;
+	spotify.Login(username, password);
+
+	Server server(pipename, &queue);
 
 	server.Run();
 

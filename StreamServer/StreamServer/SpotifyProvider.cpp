@@ -1,3 +1,4 @@
+#pragma once
 #include "SpotifyProvider.h"
 #include <stdint.h>
 #include <libspotify/api.h>
@@ -508,8 +509,12 @@ static void SP_CALLCONV  track_ended(void)
 
 
 
-SpotifyProvider::SpotifyProvider()
+SpotifyProvider::SpotifyProvider(const char* username, const char* password)
 {
+
+	m_username = username;
+	m_password = password;
+
 	g_do = 0;
 	extern const uint8_t g_appkey[];
 	extern const size_t g_appkey_size;
@@ -539,17 +544,6 @@ SpotifyProvider::SpotifyProvider()
 
 	/* Create session */
 	spconfig.application_key_size = g_appkey_size;
-	
-
-	/*
-	pthread_mutex_init(&g_notify_mutex, NULL);
-	pthread_cond_init(&g_notify_cond, NULL);
-
-	for (int i = 0; i < 322; i++)
-	{
-		char penis = g_appkey[i];
-	}
-	*/
 
 	err = sp_session_create(&spconfig, &sp);
 
@@ -568,15 +562,16 @@ SpotifyProvider::~SpotifyProvider()
 }
 
 
-void SpotifyProvider::Login(const char* username, const char* password)
+void SpotifyProvider::Login()
 {
 	//sp_session_login(sp, username, password, 0, NULL);
-	sp_session_login(g_sess, username, password, 0, NULL);
+	sp_session_login(g_sess, m_username, m_password, 0, NULL);
 
 }
 
 void SpotifyProvider::StartThread()
 {
+	Login();
 
 }
 

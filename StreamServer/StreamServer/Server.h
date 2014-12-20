@@ -37,7 +37,7 @@ class Server
 	Server(const Server &);
 	Server& operator=(const Server &);
 public:
-	Server(std::string, ThreadSafeQueue<AudioChunk> *);
+	Server(std::string pipename, ThreadSafeQueue<AudioChunk>* queue);
 	~Server();
 	int Run();
 };
