@@ -1,7 +1,9 @@
+#pragma once
 #include <strsafe.h>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <queue>
 
 template<typename Data>
 class ThreadSafeQueue 
@@ -19,34 +21,35 @@ public:
 
 	void push(const Data& data)
 	{
-		std::unique_lock < std::mutex >> lock(mutex);
+		std::unique_lock < std::mutex > lock(mutex);
 
 		queue.push(data);
+		newDataCount++;
 
 		conditionVariable.notify_one();
 	}
 
 	bool empty() const
 	{
-		std::unique_lock < std::mutex >> lock(mutex);
+		std::unique_lock < std::mutex > lock(mutex);
 		return queue.empty();
 	}
 
 	Data& front()
 	{
-		std::unique_lock < std::mutex >> lock(mutex);
+		std::unique_lock < std::mutex > lock(mutex);
 		return queue.front();
 	}
 
 	Data const& front() const
 	{
-		std::unique_lock < std::mutex >> lock(mutex);
+		std::unique_lock < std::mutex > lock(mutex);
 		return queue.front();
 	}
 
 	void pop()
 	{
-		std::unique_lock < std::mutex >> lock(mutex);
+		std::unique_lock < std::mutex > lock(mutex);
 		queue.pop();
 	}
 };

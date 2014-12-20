@@ -10,8 +10,9 @@
 #pragma warning(disable:4996)
 
 
-Server::Server(std::string pipename, ThreadSafeQueue<AudioChunk> queue) : newData(false)
+Server::Server(std::string pipename, ThreadSafeQueue<AudioChunk>* queue)
 {
+	audioQueue = queue;
 	int size = pipename.length() + 1;
 	const char* text = new char[size];
 	text = pipename.c_str();
@@ -82,7 +83,7 @@ void Server::StreamDataToClient(HANDLE hPipe)
 
 		//wait for data
 		std::unique_lock<std::mutex> lock(mutex);
-		condVar.wait(lock, [this] { return newData; });
+		condVar.wait(lock, [this] { return !audioQueue->empty(); });
 
 		std::cout << "Got data";
 		//get data from queue

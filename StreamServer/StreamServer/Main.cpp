@@ -1,8 +1,16 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "Server.h"
-int main()
+#include "include\getopt.h"
+#include <iostream>
+
+int main(int argc, char** argv)
 {
 	const char *username = NULL;
 	const char *password = NULL;
+	const char* listname = NULL;
 	int opt;
 
 	while ((opt = getopt(argc, argv, "u:p:l:d")) != EOF) {
@@ -16,11 +24,7 @@ int main()
 			break;
 
 		case 'l':
-			g_listname = optarg;
-			break;
-
-		case 'd':
-			g_remove_tracks = 1;
+			listname = optarg;
 			break;
 
 		default:
@@ -28,12 +32,10 @@ int main()
 		}
 	}
 
-	if (!username || !password || !g_listname) {
-		usage(argv[0]);
+	if (!username || !password || !listname) {
 		std::cout << "username passsowrd list name missing or something";
 		exit(1);
 	}
-	k
 	Server server;
 
 	server.Run();

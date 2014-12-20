@@ -2,12 +2,14 @@
 class SpotifyProvider
 {
 public:
-	void Login();
+	void Login(const char* username, const char* password);
 	void ProcessEvents();
+	static void StartThread();
 	SpotifyProvider();
 	~SpotifyProvider();
 private:
-	int m_next_timeout = 0;
-	static sp_session* m_session;
+
+
+
 };
 
