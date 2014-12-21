@@ -6,27 +6,17 @@
 #include <mutex>
 #include <condition_variable>
 #include "ThreadSafeQueue.h"
+//#include <WinSock2.h>
+#include <stdint.h>
+//#include <WS2tcpip.h>
 
 #pragma warning(disable:4996)
 
 
-Server::Server(std::string pipename, ThreadSafeQueue<AudioChunk>* queue)
+Server::Server(int port, ThreadSafeQueue<AudioChunk>* queue)
 {
+	m_port = port;
 	audioQueue = queue;
-	int size = pipename.length() + 1;
-	const char* text = new char[size];
-	text = pipename.c_str();
-
-	wchar_t* wtext = new wchar_t[size * 2];
-
-	mbstowcs(wtext, text, size);//Plus null
-
-	lpszPipename = wtext;
-
-
-
-
-
 
 }
 
@@ -35,143 +25,86 @@ Server::~Server()
 {
 }
 
-void Server::StreamDataToClient(HANDLE hPipe)
+
+void Server::Run()
 {
-	
-	unsigned long cbBytesRead = 0;
-	unsigned long cbReplyBytes = 0;
-	unsigned long cbWritten = 0;
+	sockaddr_in m_addr;
+	memset(&m_addr, 0, sizeof(m_addr));
 
-	byte* sendMsg = new byte[BUFSIZE];
-	byte* receiveMsg = new byte[BUFSIZE];
+	int port = m_port;
 
-	char* inputBuf = new char[BUFSIZE];
-	for (int i = 0; i < BUFSIZE; i++)
+	//create
+	int m_sock = socket(AF_INET, SOCK_STREAM, 0);
+	std::cout << "created socket" << std::endl;
+
+	int on = 1;
+	char * onOn = (char*)(&on);
+	int err = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, onOn, sizeof(onOn));
+
+	std::cout << "setsockopt'd socket (err was " << err << ")" << std::endl;
+
+	//bind
+
+	m_addr.sin_family = AF_INET;
+	m_addr.sin_addr.s_addr = INADDR_ANY;
+	m_addr.sin_port = htons(port);
+
+	//:: resolves scope, ie. forces to global namespace
+	int bind_return = ::bind(m_sock, (struct sockaddr *) &m_addr, sizeof(m_addr));
+	std::cout << "bind'd socket" << std::endl;
+
+
+	//listen
+	int maxConnections = 5;
+	::listen(m_sock, maxConnections);
+	std::cout << "listening" << std::endl;
+
+
+	//accept
+	int addr_length = sizeof(m_addr);
+
+
+	//int maxLength = 500;
+	//char buf[maxLength + 1];
+	char* buf = new char[BUFSIZE];
+	memset(buf, 0, BUFSIZE);
+
+
+	while (true)
 	{
-		inputBuf[i] = NULL;
-	}
-	int count = 0;
-	BOOL fSuccess = false;
+		std::cout << "waiting to accept" << std::endl;
+		int newSocket = accept(m_sock, (sockaddr *)&m_addr, &addr_length);
+		std::cout << "accepted" << std::endl;
 
-	while (1)
-	{
-		PeekNamedPipe(hPipe, inputBuf, BUFSIZE*sizeof(char), &cbBytesRead, NULL, NULL);
-		if (cbBytesRead > 0)
-		{
-			fSuccess = ReadFile(
-				hPipe,        // handle to pipe 
-				inputBuf,    // buffer to receive data 
-				BUFSIZE*sizeof(byte), // size of buffer 
-				&cbBytesRead, // number of bytes read 
-				NULL);        // not async I/O 
-
-			if (!fSuccess || cbBytesRead == 0)
+		while(true)
+		{            
+			try
 			{
-				if (GetLastError() == ERROR_BROKEN_PIPE)
+				int status = ::recv(newSocket, buf, BUFSIZE, 0);
+				if (status == -1)
 				{
-					_tprintf(TEXT("Client disconnected.\n"), GetLastError());
+					std::cout << "Error number: " << errno
+						<< " when tried to receive." << std::endl;
+				}
+				else if (status == 0)
+				{
+					std::cout << "Status was 0 when tried to receive" << std::endl;
 				}
 				else
 				{
-					_tprintf(TEXT("ReadFile failed, GLE=%d.\n"), GetLastError());
+					std::cout << "Received: '" << buf << "'." << std::endl;
 				}
-				break;
+
+				//filenames were enumerated at the start of main.
+				std::string data = "ses";
+				::send(newSocket, data.c_str(), data.size(), 0);
+				std::cout << "sent: '" << data << "'" << std::endl;
 			}
-
-			printf("got message %s", inputBuf);
+			catch (std::string&)
+			{
+				std::cout << "Socket closed" << std::endl;
+			}
+			Sleep(1000);
 		}
-
-		//wait for data
-		std::unique_lock<std::mutex> lock(mutex);
-		condVar.wait(lock, [this] { return !audioQueue->empty(); });
-
-		std::cout << "Got data";
-		//get data from queue
-
-		lock.unlock();
-		//condVar.notify_one(); //This doesn't belong here, right?
-
-		//form a packet out of data from queue
-
-		//write data
-		fSuccess = WriteFile(
-			hPipe,        // handle to pipe 
-			sendMsg,     // buffer to write from 
-			cbReplyBytes, // number of bytes to write 
-			&cbWritten,   // number of bytes written 
-			NULL);        // not async I/O 
-
-		printf("%d written\n", count);
-		count++;
-
-		if (!fSuccess || cbReplyBytes != cbWritten)
-		{
-			_tprintf(TEXT("InstanceThread WriteFile failed, GLE=%d.\n"), GetLastError());
-			break;
-		}
-		Sleep(1000);
 	}
-}
-
-
-
-/*
-
-VOID Server::GetAnswerToRequest(byte pchRequest[], byte* pchReply[], LPDWORD pchBytes, int count)
-	std::string str = "Answer number ";
-	str += std::to_string(count);
-
-	char* c_str = new char[str.length()+1];
-	memcpy(c_str, str.c_str(), str.length() + 1);
-
-	*pchReply = (byte*)c_str;
-
-	//pchReply = param;
-
-	//*pchBytes = (lstrlen(pchReply) + 1)*sizeof(TCHAR);
-	*pchBytes = sizeof(char) * (str.length() + 1);
-*/
-
-int Server::Run()
-{
-	HANDLE hPipe = INVALID_HANDLE_VALUE;
-	bool fConnected = false;
-	for (;;)
-	{
-		_tprintf(TEXT("\nPipe Server: Main thread awaiting client connection on %s\n"), lpszPipename);
-		hPipe = CreateNamedPipe(
-			lpszPipename,             // pipe name 
-			PIPE_ACCESS_DUPLEX,       // read/write access 
-			PIPE_TYPE_MESSAGE |       // message type pipe 
-			PIPE_READMODE_MESSAGE |   // message-read mode 
-			PIPE_WAIT,                // blocking mode 
-			PIPE_UNLIMITED_INSTANCES, // max. instances  
-			BUFSIZE,                  // output buffer size 
-			BUFSIZE,                  // input buffer size 
-			100,                        // client time-out 
-			NULL);                    // default security attribute 
-
-		if (hPipe == INVALID_HANDLE_VALUE)
-		{
-			_tprintf(TEXT("CreateNamedPipe failed, GLE=%d.\n"), GetLastError());
-			return -1;
-		}
-
-		fConnected = ConnectNamedPipe(hPipe, NULL) ?
-		TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-
-		if (fConnected)
-		{
-			printf("Client connected, starting streaming etc.\n");
-			StreamDataToClient(hPipe);
-		}
-		else
-		{
-			// The client could not connect, so close the pipe. 
-			CloseHandle(hPipe);
-		}
-		Sleep(100);
-	}
-
-	return 0;
 }

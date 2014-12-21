@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 	SpotifyProvider spotify(username, password, listname);
 	spotify.StartThread();
 
-	Server server(pipename, &queue);
+	Server server(3666, &queue);
 
 	server.Run();
 

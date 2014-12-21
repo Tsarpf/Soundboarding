@@ -27,17 +27,17 @@ class Server
 	std::condition_variable condVar;
 	bool newData;
 	ThreadSafeQueue<AudioChunk>* audioQueue;
+	int m_port;
 
 
 	//functions
-	void StreamDataToClient(HANDLE);
 	void GetData();
 
 	//constructors and overloads
 	Server(const Server &);
 	Server& operator=(const Server &);
 public:
-	Server(std::string pipename, ThreadSafeQueue<AudioChunk>* queue);
+	Server(int port, ThreadSafeQueue<AudioChunk>* queue);
 	~Server();
-	int Run();
+	void Run();
 };
