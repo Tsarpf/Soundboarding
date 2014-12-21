@@ -43,8 +43,8 @@ int main(int argc, char** argv)
 
 	ThreadSafeQueue<AudioChunk> queue;
 	
-	SpotifyProvider spotify;
-	spotify.Login(username, password);
+	SpotifyProvider spotify(username, password, listname);
+	spotify.StartThread();
 
 	Server server(pipename, &queue);
 

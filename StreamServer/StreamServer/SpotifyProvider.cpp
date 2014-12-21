@@ -20,7 +20,7 @@ static sp_session *g_sess;
 /// Handle to the playlist currently being played
 static sp_playlist *g_jukeboxlist;
 /// Name of the playlist currently being played
-const char *g_listname;
+const char* g_listname;
 /// Remove tracks flag
 static int g_remove_tracks = 0;
 /// Handle to the curren track
@@ -509,11 +509,12 @@ static void SP_CALLCONV  track_ended(void)
 
 
 
-SpotifyProvider::SpotifyProvider(const char* username, const char* password)
+SpotifyProvider::SpotifyProvider(const char* username, const char* password, const char* listname)
 {
 
 	m_username = username;
 	m_password = password;
+	g_listname = listname;
 
 	g_do = 0;
 	extern const uint8_t g_appkey[];
@@ -572,6 +573,66 @@ void SpotifyProvider::Login()
 void SpotifyProvider::StartThread()
 {
 	Login();
+	std::thread t(ProcessThread);
+	t.detach();
+}
+
+/*
+std::condition_variable g_conditionVariable;
+std::mutex g_mutex;
+int g_do;
+*/
+
+void SpotifyProvider::ProcessThread()
+{
+	int next_timeout = 0;
+	//pthread_mutex_lock(&g_notify_mutex);
+
+	std::unique_lock<std::mutex> lock(g_mutex);
+
+	for (;;) {
+		if (next_timeout == 0) {
+			//while (!g_do)
+			//{
+				//pthread_cond_wait(&g_notify_cond, &g_notify_mutex);
+			//}
+			//g_conditionVariable.wait(lock, [] { return !audioQueue->empty(); });
+			g_conditionVariable.wait(lock, [&] { return g_do > 0; });
+		}
+		else {
+			//struct timespec ts;
+
+			auto wait = std::chrono::milliseconds(next_timeout);
+			g_conditionVariable.wait_for(lock, wait, [&] {return g_do > 0; });
+			//std::chrono::duration_cast<nanoseconds>(
+
+
+			//struct timeval tv;
+			//gettimeofday(&tv, NULL);
+			//TIMEVAL_TO_TIMESPEC(&tv, &ts);
+
+			//ts.tv_sec += next_timeout / 1000;
+			//ts.tv_nsec += (next_timeout % 1000) * 1000000;
+
+			//pthread_cond_timedwait(&g_notify_cond, &g_notify_mutex, &ts);
+		}
+
+		g_do = 0;
+		//pthread_mutex_unlock(&g_notify_mutex);
+		lock.unlock();
+
+		if (g_playback_done) {
+			track_ended();
+			g_playback_done = 0;
+		}
+
+		do {
+			sp_session_process_events(g_sess, &next_timeout);
+		} while (next_timeout == 0);
+
+		//pthread_mutex_lock(&g_notify_mutex);
+		lock.lock();
+	}
 
 }
 
