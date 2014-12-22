@@ -16,8 +16,7 @@
 Server::Server(int port, ThreadSafeQueue<AudioChunk>* queue)
 {
 	m_port = port;
-	audioQueue = queue;
-
+	m_queue = queue;
 }
 
 
@@ -80,6 +79,7 @@ void Server::Run()
 		{            
 			try
 			{
+				/*
 				int status = ::recv(newSocket, buf, BUFSIZE, 0);
 				if (status == -1)
 				{
@@ -94,17 +94,25 @@ void Server::Run()
 				{
 					std::cout << "Received: '" << buf << "'." << std::endl;
 				}
+				*/
 
 				//filenames were enumerated at the start of main.
-				std::string data = "ses";
+				//g_conditionVariable.wait(lock, [&] { return g_do > 0; });
+				m_queue->waitForData();
+				AudioChunk chunk = m_queue->pop();
+
+				std::string data = "framecount "; 
+				data += chunk.frameCount;
+				
 				::send(newSocket, data.c_str(), data.size(), 0);
 				std::cout << "sent: '" << data << "'" << std::endl;
+				Sleep(1000);
 			}
 			catch (std::string&)
 			{
 				std::cout << "Socket closed" << std::endl;
 			}
-			Sleep(1000);
+			//Sleep(1000);
 		}
 	}
 }

@@ -89,6 +89,7 @@
     <ClCompile Include="SpotifyProvider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AudioChunk.h" />
     <ClInclude Include="include\getopt.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="SpotifyProvider.h" />

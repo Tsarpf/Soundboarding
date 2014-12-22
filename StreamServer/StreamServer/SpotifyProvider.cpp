@@ -384,9 +384,12 @@ struct AudioChunk
 	chunk->frameCount = num_frames;
 	chunk->sampleRate = format->sample_rate;
 
+	unsigned short* pFrames = new unsigned short[num_frames];
+	memcpy(pFrames, frames, num_frames);
 
+	chunk->frames = pFrames;
 
-	chunk->frames
+	g_queue->push(*chunk);
 
 	//afd = (audio_fifo_data_t*) malloc(sizeof(*afd) + s);
 	//memcpy(afd->samples, frames, s);

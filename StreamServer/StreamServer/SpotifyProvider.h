@@ -1,9 +1,11 @@
 #pragma once
+#include "ThreadSafeQueue.h"
+#include "AudioChunk.h"
 class SpotifyProvider
 {
 public:
 	void StartThread();
-	SpotifyProvider(const char* username, const char* password, const char* listname);
+	SpotifyProvider(const char* username, const char* password, const char* listname, ThreadSafeQueue<AudioChunk>* queue);
 	~SpotifyProvider();
 private:
 	void Login();

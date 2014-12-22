@@ -14,18 +14,16 @@ private:
 	mutable std::mutex mutex;
 public:
 
+	/*
 	std::condition_variable getConditionVariable()
 	{
 		return conditionVariable;
 	}
-
+	*/
 	void push(const Data& data)
 	{
 		std::unique_lock < std::mutex > lock(mutex);
-
 		queue.push(data);
-		newDataCount++;
-
 		conditionVariable.notify_one();
 	}
 
@@ -33,6 +31,16 @@ public:
 	{
 		std::unique_lock < std::mutex > lock(mutex);
 		return queue.empty();
+	}
+
+	void waitForData()
+	{
+		if (!empty())
+			return;
+
+
+		std::unique_lock < std::mutex > lock(mutex);
+		conditionVariable.wait(lock, [&] { return !empty(); });
 	}
 
 	Data& front()
@@ -47,9 +55,11 @@ public:
 		return queue.front();
 	}
 
-	void pop()
+	Data& pop()
 	{
 		std::unique_lock < std::mutex > lock(mutex);
+		Data& f = front();
 		queue.pop();
+		return f;
 	}
 };

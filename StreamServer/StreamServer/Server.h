@@ -20,7 +20,7 @@ class Server
 	std::mutex mutex;
 	std::condition_variable condVar;
 	bool newData;
-	ThreadSafeQueue<AudioChunk>* audioQueue;
+	ThreadSafeQueue<AudioChunk>* m_queue;
 	int m_port;
 
 
