@@ -20,6 +20,7 @@ class AudioQueue
     public void Enqueue(int sample)
     {
         float sampleFloat = (float)sample / (float)bitDepth * 2 - 1;
+        //float sampleFloat = (float)sample - bitDepth / 2;
         
         
         audio.Add(sampleFloat);
@@ -39,5 +40,12 @@ class AudioQueue
     {
         return audio[position++];
     }
+
+    /*
+    public float[] DequeueMany()
+    {
+
+    }
+    */
     
 }

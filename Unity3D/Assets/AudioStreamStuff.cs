@@ -3,30 +3,31 @@ using System.Collections;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 
 public class AudioStreamStuff : MonoBehaviour
 {
-    public int position = 0;
-    public int sampleRate = 0;
-    public float frequency = 440;
+    //public int position = 0;
+    //public int sampleRate = 0;
+    //public float frequency = 440;
     AudioQueue queue;
     StreamReader audioReader;
     TcpClient client;
     NetworkStream stream;
-    void Start() {
+    void Awake()
+    {
         queue = new AudioQueue();
         
         client = new TcpClient("localhost", 3666);
         stream = client.GetStream();
 
         audioReader = new StreamReader(stream);
-        AudioClip myClip = AudioClip.Create("spotifru", 44100 * 10000, 2, 44100, false, true, GetAudioFromQueue);
-        audio.clip = myClip;
         //AudioClip myClip = AudioClip.Create("MySinoid", 44100, 1, 44100, false, true, OnAudioRead, OnAudioSetPosition);
         //sampleRate = AudioSettings.outputSampleRate;
         //audio.clip = myClip;
-        audio.PlayDelayed(5);
+    }
+    void Start() {
     }
     /*
     void OnAudioRead(float[] data) {
@@ -39,17 +40,22 @@ public class AudioStreamStuff : MonoBehaviour
     }
     */
 
-    int readPerUpdate = 44100 / 2;
     bool start = true;
+    int readPerUpdate = 44100 / 10;
     void Update()
     {
-        GetAudioFromServer(readPerUpdate);
-        /*
         if (start)
         {
+            start = false;
+            GetAudioFromServer(44100);
+            AudioClip myClip = AudioClip.Create("spotifru", 44100 * 1000, 2, 44100, true, true, GetAudioFromQueue);
+            audio.clip = myClip;
+            audio.PlayDelayed(3);
         }
-        start = false;
-        */
+        else
+        {
+            GetAudioFromServer(readPerUpdate);
+        }
     }
 
     void GetAudioFromServer(int sampleCount)
@@ -71,7 +77,20 @@ public class AudioStreamStuff : MonoBehaviour
 
     void GetAudioFromQueue(float[] data)
     {
-        Debug.Log("asking for data " + data.Length);
+        //Debug.Log("get audio");
+        //Debug.Log("asking for data " + data.Length);
+        while(queue.DataLeft() < data.Length)
+        {
+            GetAudioFromServer(readPerUpdate);
+        }
+        /*
+        if (queue.DataLeft() < data.Length)
+        {
+            Debug.Log("Couldn't get enough data");
+            return;
+        }
+        */
+        /*
         if (queue.DataLeft() < data.Length)
         {
             Debug.Log("Warning: not enough audio, filling rest with zeroes");
@@ -87,15 +106,20 @@ public class AudioStreamStuff : MonoBehaviour
             }
             return;
         }
+        */
 
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         for (int i = 0; i < data.Length; i++)
         {
             data[i] = queue.Dequeue();
-            Debug.Log("value: " + data[i]);
+            //if (i % 100 == 0)
+            //{
+            //    Debug.Log("value: " + data[i]);
+            //}
+            //Debug.Log("value: " + data[i]);
         }
-    }
-    void OnAudioSetPosition(int newPosition)
-    {
-        position = newPosition;
+        sw.Stop();
+        UnityEngine.Debug.Log("audio get time " + sw.Elapsed);
     }
 }
