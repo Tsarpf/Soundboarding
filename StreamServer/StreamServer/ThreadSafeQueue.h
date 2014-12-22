@@ -40,7 +40,7 @@ public:
 
 
 		std::unique_lock < std::mutex > lock(mutex);
-		conditionVariable.wait(lock, [&] { return !empty(); });
+		conditionVariable.wait(lock, [&] { return !queue.empty(); });
 	}
 
 	Data& front()
@@ -58,7 +58,7 @@ public:
 	Data& pop()
 	{
 		std::unique_lock < std::mutex > lock(mutex);
-		Data& f = front();
+		Data& f = queue.front();
 		queue.pop();
 		return f;
 	}

@@ -101,12 +101,18 @@ void Server::Run()
 				m_queue->waitForData();
 				AudioChunk chunk = m_queue->pop();
 
-				std::string data = "framecount "; 
-				data += chunk.frameCount;
+				//unsigned short data = chunk.frameCount;
 				
-				::send(newSocket, data.c_str(), data.size(), 0);
-				std::cout << "sent: '" << data << "'" << std::endl;
-				Sleep(1000);
+				//int err = ::send(newSocket, (char*)&data, sizeof(unsigned short), 0);
+				int dataSize = chunk.frameCount * chunk.channels * sizeof(unsigned short);
+				int err = ::send(newSocket, (char*)&chunk.frames, dataSize, 0);
+
+				if (err == SOCKET_ERROR)
+				{
+					std::cout << "Disconnected" << std::endl;
+					break;
+				}
+				std::cout << "sent: " << dataSize << " bytes" << std::endl;
 			}
 			catch (std::string&)
 			{

@@ -26,7 +26,7 @@ public class AudioStreamStuff : MonoBehaviour
         //AudioClip myClip = AudioClip.Create("MySinoid", 44100, 1, 44100, false, true, OnAudioRead, OnAudioSetPosition);
         //sampleRate = AudioSettings.outputSampleRate;
         //audio.clip = myClip;
-        audio.PlayDelayed(2); ;
+        audio.PlayDelayed(5);
     }
     /*
     void OnAudioRead(float[] data) {
@@ -71,6 +71,7 @@ public class AudioStreamStuff : MonoBehaviour
 
     void GetAudioFromQueue(float[] data)
     {
+        Debug.Log("asking for data " + data.Length);
         if (queue.DataLeft() < data.Length)
         {
             Debug.Log("Warning: not enough audio, filling rest with zeroes");
@@ -90,6 +91,7 @@ public class AudioStreamStuff : MonoBehaviour
         for (int i = 0; i < data.Length; i++)
         {
             data[i] = queue.Dequeue();
+            Debug.Log("value: " + data[i]);
         }
     }
     void OnAudioSetPosition(int newPosition)
