@@ -15,16 +15,16 @@ class AudioQueue
     List<float> audio;
     public AudioQueue()
     {
-        bitDepth = (int)Math.Pow(2,16);
+        bitDepth = (short)Math.Pow(2,16);
         audio = new List<float>();
     }
 
 
 
 
-    public void Enqueue(int sample)
+    public void Enqueue(ushort sample)
     {
-        float sampleFloat = sample / bitDepth * 2 - 1;
+        float sampleFloat = (sample / bitDepth) * 2 - 1;
         audio.Add(sampleFloat);
     }
 

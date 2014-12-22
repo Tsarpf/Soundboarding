@@ -54,7 +54,7 @@ public class AudioStreamStuff : MonoBehaviour
 
     void GetAudioFromServer(int sampleCount)
     {
-        byte[] inbuffer = new byte[4];
+        byte[] inbuffer = new byte[2];
 
         if (stream.CanRead)
         {
@@ -62,7 +62,7 @@ public class AudioStreamStuff : MonoBehaviour
             while (stream.DataAvailable && i < sampleCount)
             {
                 int bytesRead = stream.Read(inbuffer, 0, inbuffer.Length);
-                int result = System.BitConverter.ToInt32(inbuffer, 0);
+                ushort result = System.BitConverter.ToUInt16(inbuffer, 0);
                 queue.Enqueue(result);
                 i++;
             }

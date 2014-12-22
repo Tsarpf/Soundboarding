@@ -10,6 +10,9 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "ThreadSafeQueue.h"
+#include "AudioChunk.h"
+
 std::condition_variable g_conditionVariable;
 std::mutex g_mutex;
 int g_do;
@@ -27,6 +30,8 @@ static int g_remove_tracks = 0;
 static sp_track *g_currenttrack;
 /// Index to the next track
 static int g_track_index;
+
+static ThreadSafeQueue<AudioChunk>* g_queue;
 
 /**
 * Called on various events to start playback if it hasn't been started already.
@@ -364,6 +369,25 @@ static int SP_CALLCONV music_delivery(sp_session *sess, const sp_audioformat *fo
 
 	s = num_frames * sizeof(int16_t) * format->channels;
 
+	/*
+struct AudioChunk
+{
+	int sampleRate;
+	int channels;
+	int frameCount;
+	void* frames;
+};
+	*/
+
+	AudioChunk* chunk = new AudioChunk();
+	chunk->channels = format->channels;
+	chunk->frameCount = num_frames;
+	chunk->sampleRate = format->sample_rate;
+
+
+
+	chunk->frames
+
 	//afd = (audio_fifo_data_t*) malloc(sizeof(*afd) + s);
 	//memcpy(afd->samples, frames, s);
 
@@ -509,9 +533,10 @@ static void SP_CALLCONV  track_ended(void)
 
 
 
-SpotifyProvider::SpotifyProvider(const char* username, const char* password, const char* listname)
+SpotifyProvider::SpotifyProvider(const char* username, const char* password, const char* listname, ThreadSafeQueue<AudioChunk>* queue)
 {
 
+	g_queue = queue;
 	m_username = username;
 	m_password = password;
 	g_listname = listname;

@@ -10,8 +10,5 @@ private:
 	static void ProcessThread();
 	const char * m_username;
 	const char * m_password;
-
-
-
 };
 

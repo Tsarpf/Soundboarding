@@ -8,16 +8,10 @@
 #include <mutex>
 #include <condition_variable>
 #include "ThreadSafeQueue.h"
+#include "AudioChunk.h"
 
 #define BUFSIZE 512
 
-struct AudioChunk
-{
-	int sampleRate;
-	int channels;
-	int frameCount;
-	void* frames;
-};
 
 class Server
 {
