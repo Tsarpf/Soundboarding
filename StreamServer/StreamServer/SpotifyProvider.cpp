@@ -384,7 +384,7 @@ struct AudioChunk
 	chunk->frameCount = num_frames;
 	chunk->sampleRate = format->sample_rate;
 
-	unsigned short* pFrames = new unsigned short[num_frames];
+	short* pFrames = new short[num_frames];
 	memcpy(pFrames, frames, num_frames);
 
 	chunk->frames = pFrames;

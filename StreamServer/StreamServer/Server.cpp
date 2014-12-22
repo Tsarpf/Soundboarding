@@ -104,7 +104,9 @@ void Server::Run()
 				//unsigned short data = chunk.frameCount;
 				
 				//int err = ::send(newSocket, (char*)&data, sizeof(unsigned short), 0);
-				int dataSize = chunk.frameCount * chunk.channels * sizeof(unsigned short);
+				int dataSize = chunk.frameCount * chunk.channels * sizeof(short);
+				//int firstVal = ((short*)chunk.frames)[0];
+
 				int err = ::send(newSocket, (char*)&chunk.frames, dataSize, 0);
 
 				if (err == SOCKET_ERROR)

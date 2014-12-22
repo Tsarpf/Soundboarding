@@ -19,9 +19,14 @@ class AudioQueue
 
     public void Enqueue(int sample)
     {
-        float sampleFloat = (float)sample / (float)bitDepth * 2 - 1;
+        //float sampleFloat = (float)sample / (float)bitDepth; //* 2 - 1;
+        //float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / 2.0f;
+        //sampleFloat /= bitDepth;
         //float sampleFloat = (float)sample - bitDepth / 2;
-        
+
+        float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / (float)bitDepth;
+
+        //float sampleFloat = (float)sample / ((float)bitDepth / 2.0f);
         
         audio.Add(sampleFloat);
     }
@@ -42,9 +47,11 @@ class AudioQueue
     }
 
     /*
-    public float[] DequeueMany()
+    public float[] DequeueMany(int count)
     {
-
+        float[] ret = new float[count];
+        Buffer.BlockCopy(audio.ToArray(), 0, ret, 0, count);
+        return ret;
     }
     */
     

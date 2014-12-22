@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Diagnostics;
+//using System.Diagnostics;
 
 
 public class AudioStreamStuff : MonoBehaviour
@@ -17,6 +17,7 @@ public class AudioStreamStuff : MonoBehaviour
     NetworkStream stream;
     void Awake()
     {
+        
         queue = new AudioQueue();
         
         client = new TcpClient("localhost", 3666);
@@ -42,13 +43,14 @@ public class AudioStreamStuff : MonoBehaviour
 
     bool start = true;
     int readPerUpdate = 44100 / 10;
+    int playForSeconds = 1;
     void Update()
     {
         if (start)
         {
             start = false;
             GetAudioFromServer(44100);
-            AudioClip myClip = AudioClip.Create("spotifru", 44100 * 1000, 2, 44100, true, true, GetAudioFromQueue);
+            AudioClip myClip = AudioClip.Create("spotifry", 44100 * playForSeconds, 2, 44100, false, true, GetAudioFromQueue, OnAudioSetPosition);
             audio.clip = myClip;
             audio.PlayDelayed(3);
         }
@@ -68,13 +70,17 @@ public class AudioStreamStuff : MonoBehaviour
             while (stream.DataAvailable && i < sampleCount)
             {
                 int bytesRead = stream.Read(inbuffer, 0, inbuffer.Length);
-                ushort result = System.BitConverter.ToUInt16(inbuffer, 0);
+                short result = System.BitConverter.ToInt16(inbuffer, 0);
+                //if (i == 0) { Debug.Log("result: " + result); }
                 queue.Enqueue(result);
                 i++;
             }
         }
     }
-
+    void OnAudioSetPosition(int newPosition)
+    {
+        UnityEngine.Debug.Log("new pos: " + newPosition);
+    }
     void GetAudioFromQueue(float[] data)
     {
         //Debug.Log("get audio");
@@ -83,43 +89,30 @@ public class AudioStreamStuff : MonoBehaviour
         {
             GetAudioFromServer(readPerUpdate);
         }
-        /*
-        if (queue.DataLeft() < data.Length)
-        {
-            Debug.Log("Couldn't get enough data");
-            return;
-        }
-        */
-        /*
-        if (queue.DataLeft() < data.Length)
-        {
-            Debug.Log("Warning: not enough audio, filling rest with zeroes");
-            int j = 0;
-            for (int i = 0; i < queue.DataLeft(); i++)
-            {
-                data[i] = queue.Dequeue();
-                j++;
-            }
-            for (; j < data.Length; j++)
-            {
-                data[j] = 0;
-            }
-            return;
-        }
-        */
-
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+        //Stopwatch sw = new Stopwatch();
+        //sw.Start();
         for (int i = 0; i < data.Length; i++)
         {
-            data[i] = queue.Dequeue();
+            float test = queue.Dequeue();
+            if (i % 10 == 0) { Debug.Log("test: " + test); }
+            data[i] = test;
+            /*
+            if (i % 500 == 0)
+            {
+                if (test == 0)
+                    test = 1;
+                else 
+                    test = 0;
+            }
+                data[i] = test;
+            */
             //if (i % 100 == 0)
             //{
-            //    Debug.Log("value: " + data[i]);
+            //    UnityEngine.Debug.Log("value: " + data[i]);
             //}
             //Debug.Log("value: " + data[i]);
         }
-        sw.Stop();
-        UnityEngine.Debug.Log("audio get time " + sw.Elapsed);
+        //sw.Stop();
+        //UnityEngine.Debug.Log("audio get time " + sw.Elapsed.Milliseconds);
     }
 }
