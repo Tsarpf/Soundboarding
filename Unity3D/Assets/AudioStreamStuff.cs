@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
 //using System.Diagnostics;
 
 
@@ -42,8 +43,8 @@ public class AudioStreamStuff : MonoBehaviour
     */
 
     bool start = true;
-    int readPerUpdate = 44100 / 10;
-    int playForSeconds = 1;
+    int readPerUpdate = 44100 / 5;
+    int playForSeconds = 10;
     void Update()
     {
         if (start)
@@ -70,9 +71,14 @@ public class AudioStreamStuff : MonoBehaviour
             while (stream.DataAvailable && i < sampleCount)
             {
                 int bytesRead = stream.Read(inbuffer, 0, inbuffer.Length);
-                short result = System.BitConverter.ToInt16(inbuffer, 0);
+                List<byte> bytes = new List<byte>(inbuffer);
+                bytes.Reverse();
+                short result = System.BitConverter.ToInt16(bytes.ToArray(), 0);
+                //result = IPAddress.NetworkToHostOrder(result);
+                //result = System.Net.Network
                 //if (i == 0) { Debug.Log("result: " + result); }
-                queue.Enqueue(result);
+                int res = System.Convert.ToInt32(result);
+                queue.Enqueue(res);
                 i++;
             }
         }
@@ -91,11 +97,21 @@ public class AudioStreamStuff : MonoBehaviour
         }
         //Stopwatch sw = new Stopwatch();
         //sw.Start();
+        //bool ses = true;
         for (int i = 0; i < data.Length; i++)
         {
             float test = queue.Dequeue();
-            if (i % 10 == 0) { Debug.Log("test: " + test); }
             data[i] = test;
+            //if (i % 10 == 0) { Debug.Log("test: " + test); }
+            /*
+            if (ses)
+                data[i] = test;
+            else
+                data[i] = 0;
+
+            ses = !ses;
+            */
+            //queue.Dequeue();
             /*
             if (i % 500 == 0)
             {

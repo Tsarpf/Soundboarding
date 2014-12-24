@@ -24,8 +24,8 @@ class AudioQueue
         //sampleFloat /= bitDepth;
         //float sampleFloat = (float)sample - bitDepth / 2;
 
-        float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / (float)bitDepth;
-
+       float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / (float)bitDepth; //0-1
+        
         //float sampleFloat = (float)sample / ((float)bitDepth / 2.0f);
         
         audio.Add(sampleFloat);
