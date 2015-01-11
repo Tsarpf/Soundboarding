@@ -24,10 +24,10 @@
     <ClCompile Include="SpotifyProvider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="appkey.cpp">
+    <ClCompile Include="include\getopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\getopt.c">
+    <ClCompile Include="appkey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

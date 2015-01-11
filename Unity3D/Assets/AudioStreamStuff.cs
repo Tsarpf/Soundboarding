@@ -71,13 +71,7 @@ public class AudioStreamStuff : MonoBehaviour
             while (stream.DataAvailable && i < sampleCount)
             {
                 int bytesRead = stream.Read(inbuffer, 0, inbuffer.Length);
-                List<byte> bytes = new List<byte>(inbuffer);
-                bytes.Reverse();
-                short result = System.BitConverter.ToInt16(bytes.ToArray(), 0);
-                //result = IPAddress.NetworkToHostOrder(result);
-                //result = System.Net.Network
-                //if (i == 0) { Debug.Log("result: " + result); }
-                int res = System.Convert.ToInt32(result);
+                int res = System.BitConverter.ToInt16(inbuffer, 0);
                 queue.Enqueue(res);
                 i++;
             }
