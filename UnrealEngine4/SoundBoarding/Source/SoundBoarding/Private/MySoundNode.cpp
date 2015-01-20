@@ -7,88 +7,125 @@
 #define LOCTEXT_NAMESPACE "MySoundNode"
 
 
-UMySoundNode::UMySoundNode(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UMySoundNode::UMySoundNode(const class FPostConstructInitializeProperties& PCIP)
+	: Super(PCIP)
+	, Volume(0.5f)
+	, Frequency(100.0f)
 {
 }
 
-void UMySoundNode::ParseNodes(FAudioDevice* AudioDevice, const UPTRINT NodeWaveInstanceHash, FActiveSound& ActiveSound, const FSoundParseParameters& ParseParams, TArray<FWaveInstance*>& WaveInstances)
-{
-	if (SoundMod)
-	{
-		// The SoundWave's bLooping is only for if it is directly referenced, so clear it
-		// in the case that it is being played from a player
-		bool bModIsLooping = SoundMod->bLooping;
-		SoundMod->bLooping = false;
-
-		if (bLooping)
-		{
-			FSoundParseParameters UpdatedParams = ParseParams;
-			UpdatedParams.bLooping = true;
-			SoundMod->Parse(AudioDevice, NodeWaveInstanceHash, ActiveSound, UpdatedParams, WaveInstances);
-		}
-		else
-		{
-			SoundMod->Parse(AudioDevice, NodeWaveInstanceHash, ActiveSound, ParseParams, WaveInstances);
-		}
-
-		SoundMod->bLooping = bModIsLooping;
-	}
-}
-
-float UMySoundNode::GetDuration()
-{
-	float Duration = 0.f;
-	if (SoundMod)
-	{
-		if (bLooping)
-		{
-			Duration = INDEFINITELY_LOOPING_DURATION;
-		}
-		else
-		{
-			Duration = SoundMod->Duration;
-		}
-	}
-	return Duration;
-}
-
-#if WITH_EDITOR
-FString UMySoundNode::GetTitle() const
-{
-	FText SoundModName;
-	if (SoundMod)
-	{
-		SoundModName = FText::FromString(SoundMod->GetFName().ToString());
-	}
-	else
-	{
-		SoundModName = LOCTEXT("NoSoundMod", "NONE");
-	}
-
-	FString Title;
-
-	if (bLooping)
-	{
-		FFormatNamedArguments Arguments;
-		Arguments.Add(TEXT("Description"), FText::FromString(Super::GetTitle()));
-		Arguments.Add(TEXT("SoundModName"), SoundModName);
-		Title = FText::Format(LOCTEXT("LoopingSoundWaveDescription", "Looping {Description} : {SoundModName}"), Arguments).ToString();
-	}
-	else
-	{
-		Title = Super::GetTitle() + FString(TEXT(" : ")) + SoundModName.ToString();
-	}
-
-	return Title;
-}
-#endif
-
-// A Mod Player is the end of the chain and has no children
 int32 UMySoundNode::GetMaxChildNodes() const
 {
 	return 0;
 }
 
+float UMySoundNode::GetDuration()
+{
+	return INDEFINITELY_LOOPING_DURATION;
+}
+
+void UMySoundNode::ParseNodes(FAudioDevice* AudioDevice, const UPTRINT NodeWaveInstanceHash, FActiveSound& ActiveSound, const FSoundParseParameters& ParseParams, TArray<FWaveInstance*>& WaveInstances)
+{
+	// method 1 : works "sort of" , but seems like the clip stops playing and restarts
+	if (!SoundWaveIsInitialized)
+	{
+		CreateSoundWaveStreaming();
+	}
+
+	if (SoundWaveIsInitialized)
+	{
+		if (SoundWaveProcedural)
+		{
+			SoundWaveProcedural->Frequency = Frequency;
+			SoundWaveProcedural->Volume = Volume;
+			SoundWaveProcedural->Parse(AudioDevice, NodeWaveInstanceHash, ActiveSound, ParseParams, WaveInstances);
+		}
+	}
+}
+
+
+void UMySoundNode::CreateSoundWaveStreaming()
+{
+	SoundWaveProcedural = NewObject<UMySoundWaveStreaming>();
+	SoundWaveIsInitialized = true;
+}
+
+/*
+FString UMySoundNode::GetUniqueString() const
+{
+	return TEXT("FOO UNIQUE STRING");
+}
+*/
+
+#if WITH_EDITOR
+
+FString UMySoundNode::GetTitle() const
+{
+	return TEXT("Procedural Sound Wave Source");
+}
+#endif
+
 
 #undef LOCTEXT_NAMESPACE
+
+/*
+
+#include "AudioTestProject.h"
+#include "SoundNodeProceduralTest.h"
+
+USoundNodeProceduralTest::USoundNodeProceduralTest(const class FPostConstructInitializeProperties& PCIP)
+: Super(PCIP)
+, Volume(0.5f)
+, Frequency(100.0f)
+{
+}
+
+int32 USoundNodeProceduralTest::GetMaxChildNodes() const
+{
+return 0;
+}
+
+float USoundNodeProceduralTest::GetDuration()
+{
+return INDEFINITELY_LOOPING_DURATION;
+}
+
+void USoundNodeProceduralTest::ParseNodes(FAudioDevice* AudioDevice, const UPTRINT NodeWaveInstanceHash, FActiveSound& ActiveSound, const FSoundParseParameters& ParseParams, TArray<FWaveInstance*>& WaveInstances)
+{
+// method 1 : works "sort of" , but seems like the clip stops playing and restarts
+if(!SoundWaveIsInitialized)
+{
+CreateSoundWaveStreaming();
+}
+
+if(SoundWaveIsInitialized)
+{
+if(SoundWaveProcedural)
+{
+SoundWaveProcedural->Frequency = Frequency;
+SoundWaveProcedural->Volume = Volume;
+SoundWaveProcedural->Parse(AudioDevice, NodeWaveInstanceHash, ActiveSound, ParseParams, WaveInstances);
+}
+}
+}
+
+
+void USoundNodeProceduralTest::CreateSoundWaveStreaming()
+{
+SoundWaveProcedural = NewObject<USoundWaveProceduralTest>();
+SoundWaveIsInitialized = true;
+}
+
+FString USoundNodeProceduralTest::GetUniqueString() const
+{
+return TEXT("FOO UNIQUE STRING");
+}
+
+#if WITH_EDITOR
+
+FString USoundNodeProceduralTest::GetTitle() const
+{
+return TEXT("Procedural Sound Wave Source");
+}
+
+*/
