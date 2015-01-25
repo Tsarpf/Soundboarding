@@ -33,6 +33,10 @@ public:
 
 	// Begin USoundWave interface.
 	// End USoundWave interface.
+
+
+private:
+	void StreamClient();
 	
 };
 
