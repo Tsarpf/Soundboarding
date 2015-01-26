@@ -65,6 +65,11 @@ int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 Samples
 
 	int dataRetrieved = m_queue.dequeue(byteCount, &data);
 
+	if (dataRetrieved == 0)
+	{
+		return 0;
+	}
+
 	memcpy((void*)PCMData, data, byteCount);
 	delete[] data;
 	return dataRetrieved;
@@ -72,6 +77,7 @@ int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 Samples
 
 void UMySoundWaveStreaming::StreamClient(ThreadSafeQueue* queue)
 {
+	Sleep(10000);
 	struct addrinfo *result = NULL;
 	struct addrinfo *ptr = NULL;
 	struct addrinfo hints;

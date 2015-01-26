@@ -25,11 +25,10 @@ public:
 	{
 		std::unique_lock < std::mutex > lock(mutex);
 		int newSize = byteCount + bytesLeft;
-		char * newDataStore = (char*)realloc(data, newSize);
-		memcpy(newDataStore + bytesLeft, newData, byteCount);
+		data = (char*)realloc(data, newSize);
+		memcpy(data + bytesLeft, newData, byteCount);
 		//remember to free newData in the calling function
 		bytesLeft += byteCount;
-		data = newDataStore;
 	}
 
 	bool empty() const

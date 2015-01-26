@@ -367,7 +367,6 @@ static int SP_CALLCONV music_delivery(sp_session *sess, const sp_audioformat *fo
 	//return 0;
 	//}
 
-	s = num_frames * sizeof(int16_t) * format->channels;
 
 	/*
 struct AudioChunk
@@ -384,8 +383,9 @@ struct AudioChunk
 	chunk->frameCount = num_frames;
 	chunk->sampleRate = format->sample_rate;
 
-	short* pFrames = new short[num_frames];
-	memcpy(pFrames, frames, num_frames);
+	unsigned int byteCount = num_frames * sizeof(int16_t) * format->channels;
+	short* pFrames = new short[byteCount];
+	memcpy(pFrames, frames, byteCount);
 
 	chunk->frames = pFrames;
 
