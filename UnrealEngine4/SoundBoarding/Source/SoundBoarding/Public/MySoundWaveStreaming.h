@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Sound/SoundWaveStreaming.h"
+#include "ThreadSafeQueue.h"
 #include "MySoundWaveStreaming.generated.h"
 
 /**
@@ -36,7 +37,8 @@ public:
 
 
 private:
-	void StreamClient();
+	ThreadSafeQueue m_queue;
+	static void StreamClient(ThreadSafeQueue*);
 	
 };
 

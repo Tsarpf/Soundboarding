@@ -4,14 +4,20 @@
 #include "MySoundWaveStreaming.h"
 
 #include "AllowWindowsPlatformTypes.h"
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
+#include <strsafe.h>
+#include <thread>
+
 #include "HideWindowsPlatformTypes.h"
+
+#include "ThreadSafeQueue.h"
 
 //DECLARE_CYCLE_STAT(TEXT("Sound Mod Generate Data"), STAT_SoundModGeneratePCMData, STATGROUP_Audio);
 
-UMySoundWaveStreaming::UMySoundWaveStreaming(const class FPostConstructInitializeProperties& PCIP) : Super(PCIP), Time(0.0f), Frequency(100.0f)
+UMySoundWaveStreaming::UMySoundWaveStreaming(const class FPostConstructInitializeProperties& PCIP) : Super(PCIP), Time(0.0f), Frequency(100.0f), m_queue()
 {
 	SampleRate = 44100;
 	NumChannels = 2;
@@ -20,7 +26,8 @@ UMySoundWaveStreaming::UMySoundWaveStreaming(const class FPostConstructInitializ
 	bLooping = false;
 	DeltaTime = 1.0f / SampleRate;
 
-	StreamClient();
+	std::thread t(StreamClient, &m_queue);
+	t.detach();
 }
 
 int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 SamplesNeeded)
@@ -53,7 +60,7 @@ int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 Samples
 	return BytesProvided;
 }
 
-void UMySoundWaveStreaming::StreamClient()
+void UMySoundWaveStreaming::StreamClient(ThreadSafeQueue* queue)
 {
 	struct addrinfo *result = NULL;
 	struct addrinfo *ptr = NULL;
@@ -67,7 +74,7 @@ void UMySoundWaveStreaming::StreamClient()
 #define DEFAULT_PORT "3666"
 
 	// Resolve the server address and port
-	auto iResult = getaddrinfo("localhost", DEFAULT_PORT, &hints, &result);
+	auto iResult = getaddrinfo("127.0.0.1", DEFAULT_PORT, &hints, &result);
 	if (iResult != 0) {
 		printf("getaddrinfo failed: %d\n", iResult);
 		WSACleanup();
@@ -126,8 +133,7 @@ void UMySoundWaveStreaming::StreamClient()
 		return;
 	}
 	*/
-
-	printf("Bytes Sent: %ld\n", iResult);
+	//printf("Bytes Sent: %ld\n", iResult);
 
 	// shutdown the connection for sending since no more data will be sent
 	// the client can still use the ConnectSocket for receiving data
@@ -149,8 +155,12 @@ void UMySoundWaveStreaming::StreamClient()
 		else
 			printf("recv failed: %d\n", WSAGetLastError());
 
-		int derp = (int)recvbuf[0];
-		int herp= (int)recvbuf[iResult / 2];
-		int perp = (int)recvbuf[iResult - 1];
+		//int derp = (int)recvbuf[0];
+		//derp++;
+		//int herp= (int)recvbuf[iResult / 2];
+		//herp++;
+		//int perp = (int)recvbuf[iResult - 1];
+		//perp++;
+		//printf("ses: %d %d %d \n", derp, herp, perp);
 	} while (iResult > 0);
 }
