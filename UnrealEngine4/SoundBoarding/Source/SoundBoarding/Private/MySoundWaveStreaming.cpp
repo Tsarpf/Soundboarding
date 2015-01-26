@@ -32,6 +32,7 @@ UMySoundWaveStreaming::UMySoundWaveStreaming(const class FPostConstructInitializ
 
 int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 SamplesNeeded)
 {
+	/*
 	float TimeStart = Time;
 
 	Omega = 2.0f * PI * Frequency;	// angular frequency [rad/s]
@@ -58,6 +59,15 @@ int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 Samples
 
 	int32 BytesProvided = SamplesNeeded * 2;
 	return BytesProvided;
+	*/
+	int byteCount = SamplesNeeded * sizeof(int16);
+	char* data = 0;
+
+	int dataRetrieved = m_queue.dequeue(byteCount, &data);
+
+	memcpy((void*)PCMData, data, byteCount);
+	delete[] data;
+	return dataRetrieved;
 }
 
 void UMySoundWaveStreaming::StreamClient(ThreadSafeQueue* queue)
@@ -154,6 +164,8 @@ void UMySoundWaveStreaming::StreamClient(ThreadSafeQueue* queue)
 			printf("Connection closed\n");
 		else
 			printf("recv failed: %d\n", WSAGetLastError());
+
+		queue->enqueue(recvbuf, iResult);
 
 		//int derp = (int)recvbuf[0];
 		//derp++;
