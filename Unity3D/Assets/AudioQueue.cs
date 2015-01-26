@@ -17,16 +17,18 @@ class AudioQueue
 
 
 
-    public void Enqueue(int sample)
+    public void Enqueue(short sample)
     {
         //float sampleFloat = (float)sample / (float)bitDepth; //* 2 - 1;
         //float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / 2.0f;
         //sampleFloat /= bitDepth;
         //float sampleFloat = (float)sample - bitDepth / 2;
 
-       float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / (float)bitDepth; //0-1
+       //float sampleFloat = ((float)sample + ((float)bitDepth / 2.0f)) / (float)bitDepth; //0-1
         
         //float sampleFloat = (float)sample / ((float)bitDepth / 2.0f);
+
+        float sampleFloat = (float)(sample + bitDepth) / (float)(2 * bitDepth);
         
         audio.Add(sampleFloat);
     }

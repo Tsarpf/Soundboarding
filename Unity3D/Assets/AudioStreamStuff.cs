@@ -71,7 +71,7 @@ public class AudioStreamStuff : MonoBehaviour
             while (stream.DataAvailable && i < sampleCount)
             {
                 int bytesRead = stream.Read(inbuffer, 0, inbuffer.Length);
-                int res = System.BitConverter.ToInt16(inbuffer, 0);
+                short res = System.BitConverter.ToInt16(inbuffer, 0);
                 queue.Enqueue(res);
                 i++;
             }

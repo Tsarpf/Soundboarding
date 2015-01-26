@@ -77,7 +77,7 @@ int32 UMySoundWaveStreaming::GeneratePCMData(uint8* PCMData, const int32 Samples
 
 void UMySoundWaveStreaming::StreamClient(ThreadSafeQueue* queue)
 {
-	Sleep(10000);
+	Sleep(15000);
 	struct addrinfo *result = NULL;
 	struct addrinfo *ptr = NULL;
 	struct addrinfo hints;
