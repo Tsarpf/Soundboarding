@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 class AudioQueue
 {
     int position = 0;
@@ -17,6 +18,7 @@ class AudioQueue
 
 
 
+    int lastSec = 0;
     public void Enqueue(short sample)
     {
         //float sampleFloat = (float)sample / (float)bitDepth; //* 2 - 1;
@@ -31,6 +33,13 @@ class AudioQueue
         float sampleFloat = (float)(sample + bitDepth) / (float)(2 * bitDepth);
         
         audio.Add(sampleFloat);
+
+        int seconds = DataLeft() / 44100 / 2;
+        if (seconds > lastSec)
+        {
+            lastSec = seconds;
+            Debug.Log("Seconds: " + seconds);
+        }
     }
 
     public bool Empty()

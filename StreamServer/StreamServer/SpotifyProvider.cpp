@@ -391,19 +391,6 @@ struct AudioChunk
 
 	g_queue->push(*chunk);
 
-	//afd = (audio_fifo_data_t*) malloc(sizeof(*afd) + s);
-	//memcpy(afd->samples, frames, s);
-
-	//afd->nsamples = num_frames;
-
-	//afd->rate = format->sample_rate;
-	//afd->channels = format->channels;
-
-	//TAILQ_INSERT_TAIL(&af->q, afd, link);
-	//af->qlen += num_frames;
-
-	//pthread_cond_signal(&af->cond);
-	//pthread_mutex_unlock(&af->mutex);
 
 	return num_frames;
 }

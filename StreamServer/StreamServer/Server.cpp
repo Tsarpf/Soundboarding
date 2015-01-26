@@ -24,6 +24,7 @@ Server::~Server()
 {
 }
 
+static unsigned long sent = 0;
 
 void Server::Run()
 {
@@ -105,6 +106,7 @@ void Server::Run()
 				
 				//int err = ::send(newSocket, (char*)&data, sizeof(unsigned short), 0);
 				int dataSize = chunk.frameCount * chunk.channels * sizeof(short);
+				sent += dataSize;
 				//int firstVal = ((short*)chunk.frames)[0];
 
 				int err = ::send(newSocket, (char*)&chunk.frames, dataSize, 0);
@@ -115,6 +117,7 @@ void Server::Run()
 					break;
 				}
 				std::cout << "sent: " << dataSize << " bytes" << std::endl;
+				std::cout << "sent: " << sent / chunk.sampleRate / chunk.channels << " seconds" << std::endl;
 			}
 			catch (std::string&)
 			{
